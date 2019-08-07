@@ -31,6 +31,18 @@ def determine_libc(d, thing):
 
     return libc
 
+def target_is_armv7(d):
+    '''Determine if target is an armv7'''
+    # TUNE_FEATURES may include cortexa* even if the target is not arm
+    # in the case of *-native packages
+    if d.getVar('TARGET_ARCH') != 'arm':
+        return False
+
+    return bb.utils.contains_any('TUNE_FEATURES',
+                                 ['cortexa5', 'cortexa7', 'cortexa8',
+                                  'cortexa9', 'cortexa15', 'cortexa17'],
+                                 True, False, d)
+
 # Responsible for taking Yocto triples and converting it to Rust triples
 def rust_base_triple(d, thing):
     '''
@@ -40,7 +52,12 @@ def rust_base_triple(d, thing):
     Note that os is assumed to be some linux form
     '''
 
-    arch = d.getVar('{}_ARCH'.format(thing))
+    # The llvm-target for armv7 is armv7-unknown-linux-gnueabihf
+    if thing == "TARGET" and target_is_armv7(d):
+        arch = "armv7"
+    else:
+        arch = d.getVar('{}_ARCH'.format(thing))
+
     # All the Yocto targets are Linux and are 'unknown'
     vendor = "-unknown"
     os = d.getVar('{}_OS'.format(thing))
