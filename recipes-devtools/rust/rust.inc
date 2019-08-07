@@ -69,9 +69,9 @@ def llvm_features_from_tune(d):
     if 'mips32r2' in feat:
         f.append("+mips32r2")
 
-    v7=frozenset(['armv7a', 'armv7r', 'armv7m', 'armv7ve'])
-    if not feat.isdisjoint(v7):
+    if target_is_armv7(d):
         f.append("+v7")
+
     if 'armv6' in feat:
         f.append("+v6")
 
@@ -80,8 +80,6 @@ def llvm_features_from_tune(d):
 
     if 'thumb' in feat:
         if d.getVar('ARM_THUMB_OPT') is "thumb":
-            if not feat.isdisjoint(v7):
-                f.append("+thumb2")
             f.append("+thumb-mode")
 
     if 'cortexa5' in feat:
@@ -150,6 +148,15 @@ TARGET_POINTER_WIDTH[arm] = "32"
 TARGET_C_INT_WIDTH[arm] = "32"
 MAX_ATOMIC_WIDTH[arm] = "64"
 FEATURES[arm] = "+v6,+vfp2"
+
+## armv7-unknown-linux-gnueabihf
+DATA_LAYOUT[armv7] = "e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64"
+LLVM_TARGET[armv7] = "${RUST_TARGET_SYS}"
+TARGET_ENDIAN[armv7] = "little"
+TARGET_POINTER_WIDTH[armv7] = "32"
+TARGET_C_INT_WIDTH[armv7] = "32"
+MAX_ATOMIC_WIDTH[armv7] = "64"
+FEATURES[armv7] = "+v7,+thumb2"
 
 ## aarch64-unknown-linux-{gnu, musl}
 DATA_LAYOUT[aarch64] = "e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128"
@@ -240,7 +247,10 @@ TARGET_C_INT_WIDTH[riscv64] = "64"
 MAX_ATOMIC_WIDTH[riscv64] = "64"
 
 def arch_for(d, thing):
-    return d.getVar('{}_ARCH'.format(thing))
+    if thing == 'TARGET' and target_is_armv7(d):
+        return "armv7"
+    else:
+        return d.getVar('{}_ARCH'.format(thing))
 
 def sys_for(d, thing):
     return d.getVar('{}_SYS'.format(thing))
@@ -257,6 +267,8 @@ def arch_to_rust_target_arch(arch):
         return "mips"
     elif arch == "mip64sel":
         return "mips64"
+    elif arch == "armv7":
+        return "arm"
     else:
         return arch
 
