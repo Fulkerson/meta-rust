@@ -30,12 +30,12 @@ CARGO_VENDORING_DIRECTORY ?= "${CARGO_HOME}/bitbake"
 
 cargo_common_do_configure () {
 	mkdir -p ${CARGO_HOME}/bitbake
-	echo "paths = [" > ${CARGO_HOME}/config
 
-	for p in ${EXTRA_OECARGO_PATHS}; do
-		printf "\"%s\"\n" "$p"
-	done | sed -e 's/$/,/' >> ${CARGO_HOME}/config
-	echo "]" >> ${CARGO_HOME}/config
+	cat <<- EOF > ${CARGO_HOME}/config
+	paths = [
+	$(for p in ${EXTRA_OECARGO_PATHS}; do echo \"$p\",; done)
+	]
+	EOF
 
 	# Point cargo at our local mirror of the registry
 	cat <<- EOF >> ${CARGO_HOME}/config
@@ -73,6 +73,14 @@ cargo_common_do_configure () {
 		echo "[target.${BUILD_SYS}]" >> ${CARGO_HOME}/config
 		echo "linker = '${RUST_BUILD_CCLD}'" >> ${CARGO_HOME}/config
 	fi
+
+	# Set rustflags for all compiler invocations
+	cat <<- EOF >> ${CARGO_HOME}/config
+	[build]
+	rustflags = [
+	$(for f in ${RUSTFLAGS}; do echo \"$f\",; done)
+	]
+	EOF
 }
 
 oe_cargo_fix_env () {

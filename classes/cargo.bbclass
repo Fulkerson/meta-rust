@@ -31,8 +31,6 @@ CARGO_BUILD_FLAGS = "-v --target ${HOST_SYS} ${BUILD_MODE}"
 BUILD_DIR = "${@['release', 'debug'][d.getVar('DEBUG_BUILD') == '1']}"
 CARGO_TARGET_SUBDIR="${HOST_SYS}/${BUILD_DIR}"
 oe_cargo_build () {
-	export RUSTFLAGS="${RUSTFLAGS}"
-	export RUST_TARGET_PATH="${RUST_TARGET_PATH}"
 	bbnote "cargo = $(which ${CARGO})"
 	bbnote "rustc = $(which ${RUSTC})"
 	bbnote "${CARGO} build ${CARGO_BUILD_FLAGS} $@"
