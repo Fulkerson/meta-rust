@@ -26,6 +26,8 @@ export RUST_BACKTRACE = "1"
 MANIFEST_PATH ??= "${S}/Cargo.toml"
 
 RUSTFLAGS ??= ""
+export RUSTFLAGS
+
 BUILD_MODE = "${@['--release', ''][d.getVar('DEBUG_BUILD') == '1']}"
 CARGO_BUILD_FLAGS = "-v --target ${HOST_SYS} ${BUILD_MODE} --manifest-path=${MANIFEST_PATH}"
 
@@ -34,8 +36,6 @@ CARGO_BUILD_FLAGS = "-v --target ${HOST_SYS} ${BUILD_MODE} --manifest-path=${MAN
 BUILD_DIR = "${@['release', 'debug'][d.getVar('DEBUG_BUILD') == '1']}"
 CARGO_TARGET_SUBDIR="${HOST_SYS}/${BUILD_DIR}"
 oe_cargo_build () {
-	export RUSTFLAGS="${RUSTFLAGS}"
-	export RUST_TARGET_PATH="${RUST_TARGET_PATH}"
 	bbnote "cargo = $(which ${CARGO})"
 	bbnote "rustc = $(which ${RUSTC})"
 	bbnote "${CARGO} build ${CARGO_BUILD_FLAGS} $@"

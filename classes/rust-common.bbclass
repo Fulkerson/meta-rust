@@ -16,6 +16,9 @@ RUST_PANIC_STRATEGY ?= "unwind"
 RUST_LIBC = "${TCLIBC}"
 RUST_LIBC_class-native = "glibc"
 
+# Allow rustc to find any custom targets
+export RUST_TARGET_PATH
+
 def determine_libc(d, thing):
     '''Determine which libc something should target'''
 
