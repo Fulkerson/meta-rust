@@ -81,6 +81,10 @@ cargo_common_do_configure () {
 	$(for f in ${RUSTFLAGS}; do echo \"$f\",; done)
 	]
 	EOF
+
+	# Put build output in directory preferred by bitbake instead of
+	# inside source directory
+	echo "target-dir = \"${B}/target\"" >> ${CARGO_HOME}/config
 }
 
 oe_cargo_fix_env () {

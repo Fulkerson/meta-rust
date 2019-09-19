@@ -29,7 +29,7 @@ do_compile_prepend () {
 
 do_install () {
 	install -d "${D}${bindir}"
-	install -m 755 "${RUSTSRC}/target/${CARGO_TARGET_SUBDIR}/cargo" "${D}${bindir}"
+	install -m 755 "${B}/target/${CARGO_TARGET_SUBDIR}/cargo" "${D}${bindir}"
 }
 
 # Needed for pkg-config to be used
