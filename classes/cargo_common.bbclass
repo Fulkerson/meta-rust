@@ -73,6 +73,13 @@ cargo_common_do_configure () {
 		echo "[target.${BUILD_SYS}]" >> ${CARGO_HOME}/config
 		echo "linker = '${RUST_BUILD_CCLD}'" >> ${CARGO_HOME}/config
 	fi
+
+	# Put build output in directory preferred by bitbake instead of
+	# inside source directory
+	cat <<- EOF >> ${CARGO_HOME}/config
+	[build]
+	target-dir = "${B}/target"
+	EOF
 }
 
 oe_cargo_fix_env () {
