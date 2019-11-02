@@ -443,6 +443,8 @@ python do_configure() {
     config.set("build", "cargo", e(cargo))
 
     config.set("build", "vendor", e(True))
+    config.set("build", "sanitizers", e(True))
+    config.set("build", "profiler", e(True))
 
     targets = [d.getVar("TARGET_SYS", True)]
     config.set("build", "target", e(targets))
