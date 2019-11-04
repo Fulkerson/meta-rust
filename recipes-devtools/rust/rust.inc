@@ -276,39 +276,32 @@ def arch_to_rust_target_arch(arch):
 
 # generates our target CPU value
 def llvm_cpu(d):
-    cpu = d.getVar('PACKAGE_ARCH')
-    target = d.getVar('TRANSLATED_TARGET_ARCH')
+    tune_ccargs = d.getVar('TUNE_CCARGS').split()
+    cpu = 'generic'
 
-    trans = {}
-    trans['corei7-64'] = "corei7"
-    trans['core2-32'] = "core2"
-    trans['x86-64'] = "x86-64"
-    trans['i686'] = "i686"
-    trans['i586'] = "i586"
-    trans['powerpc'] = "powerpc"
-    trans['mips64'] = "mips64"
-    trans['mips64el'] = "mips64"
+    # Extract CPU from -march=CPU
+    for arg in tune_ccargs):
+        if arg.startswith('-march'):
+            cpu, = a.split('=', 1)
+            break
 
-    if target in ["mips", "mipsel"]:
-        feat = frozenset(d.getVar('TUNE_FEATURES').split())
-        if "mips32r2" in feat:
-            trans['mipsel'] = "mips32r2"
-            trans['mips'] = "mips32r2"
-        elif "mips32" in feat:
-            trans['mipsel'] = "mips32"
-            trans['mips'] = "mips32"
+    # Extract CPU from -mcpu=CPU
+    for arg in tune_ccargs):
+        if arg.startswith('-mcpu'):
+            cpu, = a.split('=', 1)
+            break
 
-    try:
-        return trans[cpu]
-    except:
-        return trans.get(target, "generic")
+    return cpu
 
-TARGET_LLVM_CPU="${@llvm_cpu(d)}"
-TARGET_LLVM_FEATURES = "${@llvm_features(d)}"
+
+TARGET_LLVM_CPU_class-target = "${@llvm_cpu(d)}"
+TARGET_LLVM_FEATURES_class-target = "${@llvm_features(d)}"
 
 # class-native implies TARGET=HOST, and TUNE_FEATURES only describes the real
-# (original) target.
-TARGET_LLVM_FEATURES_class-native = "${@','.join(llvm_features_from_cc_arch(d))}"
+# (original) target. We don't know what CPU we are running on so "generic" is
+# probably the safest
+TARGET_LLVM_CPU = "generic"
+TARGET_LLVM_FEATURES = "${@','.join(llvm_features_from_cc_arch(d))}"
 
 def rust_gen_target(d, thing, wd):
     import json
