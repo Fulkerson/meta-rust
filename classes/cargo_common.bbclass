@@ -28,17 +28,20 @@ CARGO_DISABLE_BITBAKE_VENDORING ?= "0"
 # Used by libstd-rs to point to the vendor dir included in rustc src
 CARGO_VENDORING_DIRECTORY ?= "${CARGO_HOME}/bitbake"
 
+export RUSTFLAGS
+
 cargo_common_do_configure () {
 	mkdir -p ${CARGO_HOME}/bitbake
 
 	cat <<- EOF > ${CARGO_HOME}/config
+	# EXTRA_OECARGO_PATHS
 	paths = [
 	$(for p in ${EXTRA_OECARGO_PATHS}; do echo \"$p\",; done)
 	]
 	EOF
 
-	# Point cargo at our local mirror of the registry
 	cat <<- EOF >> ${CARGO_HOME}/config
+	# Local mirror vendored by bitbake
 	[source.bitbake]
 	directory = "${CARGO_VENDORING_DIRECTORY}"
 	EOF
@@ -51,40 +54,41 @@ cargo_common_do_configure () {
 		EOF
 	fi
 
-        # Disable multiplexing in order to keep cargo from using http2, which we
-        # can't currently enable because of dependency loops
-        cat <<- EOF >> ${CARGO_HOME}/config
-		[http]
-		multiplexing = false
-	EOF
+	cat <<- EOF >> ${CARGO_HOME}/config
+	[http]
+	# Multiplexing can't be enabled because http2 can't be enabled
+	# in curl-native without dependency loops
+	multiplexing = false
 
-	# When a sstate-cache is used sometimes the certificates are not available
-	# at the compile time path anymore. Set it explicitly instead.
-	echo "cainfo = \"${STAGING_ETCDIR_NATIVE}/ssl/certs/ca-certificates.crt\"" \
-		>> ${CARGO_HOME}/config
+	# Ignore the hard coded and incorrect path to certificates
+	cainfo = "${STAGING_ETCDIR_NATIVE}/ssl/certs/ca-certificates.crt"
+
+	EOF
 
 	if [ -n "${http_proxy}" ]; then
 		echo "proxy = \"${http_proxy}\"" >> ${CARGO_HOME}/config
 	fi
 
-	echo "[target.${HOST_SYS}]" >> ${CARGO_HOME}/config
-	echo "linker = '${RUST_TARGET_CCLD}'" >> ${CARGO_HOME}/config
-	if [ "${HOST_SYS}" != "${BUILD_SYS}" ]; then
-		echo "[target.${BUILD_SYS}]" >> ${CARGO_HOME}/config
-		echo "linker = '${RUST_BUILD_CCLD}'" >> ${CARGO_HOME}/config
-	fi
-
-	# Set rustflags for all compiler invocations
 	cat <<- EOF >> ${CARGO_HOME}/config
-	[build]
-	rustflags = [
-	$(for f in ${RUSTFLAGS}; do echo \"$f\",; done)
-	]
+	# HOST_SYS
+	[target.${HOST_SYS}]
+	linker = "${RUST_TARGET_CCLD}"
 	EOF
+
+	if [ "${HOST_SYS}" != "${BUILD_SYS}" ]; then
+		cat <<- EOF >> ${CARGO_HOME}/config
+		# BUILD_SYS
+		[target.${BUILD_SYS}]
+		linker = "${RUST_BUILD_CCLD}"
+		EOF
+	fi
 
 	# Put build output in directory preferred by bitbake instead of
 	# inside source directory
-	echo "target-dir = \"${B}/target\"" >> ${CARGO_HOME}/config
+	cat <<- EOF >> ${CARGO_HOME}/config
+	[build]
+	target-dir = "${B}/target"
+	EOF
 }
 
 oe_cargo_fix_env () {
