@@ -23,10 +23,10 @@ export PKG_CONFIG_ALLOW_CROSS = "1"
 # Don't instruct cargo to use crates downloaded by bitbake. Some rust packages,
 # for example the rust compiler itself, come with their own vendored sources.
 # Specifying two [source.crates-io] will not work.
-CARGO_DISABLE_BITBAKE_VENDORING ?= "0"
+CARGO_DISABLE_BITBAKE_VENDORING ??= "0"
 
 # Used by libstd-rs to point to the vendor dir included in rustc src
-CARGO_VENDORING_DIRECTORY ?= "${CARGO_HOME}/bitbake"
+CARGO_VENDORING_DIRECTORY ??= "${CARGO_HOME}/bitbake"
 
 export RUSTFLAGS
 
@@ -41,6 +41,7 @@ cargo_common_do_configure () {
 	EOF
 
 	cat <<- EOF >> ${CARGO_HOME}/config
+
 	# Local mirror vendored by bitbake
 	[source.bitbake]
 	directory = "${CARGO_VENDORING_DIRECTORY}"
@@ -48,6 +49,7 @@ cargo_common_do_configure () {
 
 	if [ -z "${EXTERNALSRC}" ] && [ ${CARGO_DISABLE_BITBAKE_VENDORING} = "0" ]; then
 		cat <<- EOF >> ${CARGO_HOME}/config
+
 		[source.crates-io]
 		replace-with = "bitbake"
 		local-registry = "/nonexistant"
@@ -55,6 +57,7 @@ cargo_common_do_configure () {
 	fi
 
 	cat <<- EOF >> ${CARGO_HOME}/config
+
 	[http]
 	# Multiplexing can't be enabled because http2 can't be enabled
 	# in curl-native without dependency loops
@@ -70,6 +73,7 @@ cargo_common_do_configure () {
 	fi
 
 	cat <<- EOF >> ${CARGO_HOME}/config
+
 	# HOST_SYS
 	[target.${HOST_SYS}]
 	linker = "${RUST_TARGET_CCLD}"
@@ -77,16 +81,17 @@ cargo_common_do_configure () {
 
 	if [ "${HOST_SYS}" != "${BUILD_SYS}" ]; then
 		cat <<- EOF >> ${CARGO_HOME}/config
+
 		# BUILD_SYS
 		[target.${BUILD_SYS}]
 		linker = "${RUST_BUILD_CCLD}"
 		EOF
 	fi
 
-	# Put build output in directory preferred by bitbake instead of
-	# inside source directory
 	cat <<- EOF >> ${CARGO_HOME}/config
+
 	[build]
+	# Use out of tree build destination to avoid poluting the source tree
 	target-dir = "${B}/target"
 	EOF
 }
