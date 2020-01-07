@@ -484,13 +484,11 @@ do_compile () {
 }
 
 rust_do_install () {
-    # Only install compiler generated for the HOST_SYS. There will be
+    # Only install artifacts generated for the HOST_SYS. There will be
     # one for SNAPSHOT_BUILD_SYS as well.
-    local installer=build/tmp/dist/rustc-*-${HOST_SYS}/install.sh
-    ${installer} --destdir="${D}" --prefix="${prefix}" --disable-ldconfig
-
-    installer=build/tmp/dist/rust-std-*-${HOST_SYS}/install.sh
-    ${installer} --destdir="${D}" --prefix="${prefix}" --disable-ldconfig
+    for installer in build/tmp/dist/*${HOST_SYS}/install.sh; do
+        ${installer} --destdir=${D} --prefix=${prefix} --disable-ldconfig
+    done
 
     # Install our custom target.json files
     local td="${D}${libdir}/rustlib/"
