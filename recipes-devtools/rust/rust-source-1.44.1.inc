@@ -1,7 +1,7 @@
 SRC_URI += "https://static.rust-lang.org/dist/rustc-${PV}-src.tar.xz;name=rust"
 
-SRC_URI[rust.md5sum] = "6902e6f2fe74e8a654b867c8b5a016cf"
-SRC_URI[rust.sha256sum] = "ebac9861b43c7207af36e24402dfdc5463a4df4bdb015ccb2b165251c0fdcf7c"
+SRC_URI[rust.md5sum] = "0cc3b079ddb1eb9a17f9e7e52efcebc5"
+SRC_URI[rust.sha256sum] = "e0386295dd5f2c7842835a509e4c57989eec6c29f989a1c85478b0e06f9d38ea"
 
 # later versions of rust change the directory that they unextract to
 RUSTSRC = "${WORKDIR}/rustc-${PV}-src"
